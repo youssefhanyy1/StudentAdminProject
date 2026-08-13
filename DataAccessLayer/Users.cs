@@ -5,13 +5,13 @@ using System.Data;
 
 namespace studentDataAccessLayer
 {
-    // 1. كلاس نقل البيانات (DTO) الخاص بالمستخدم
+
     public class UserDTO
     {
         public int Id { get; set; }
         public string Username { get; set; }
         public string PasswordHash { get; set; }
-        public string Role { get; set; } // Admin أو Student
+        public string Role { get; set; } 
 
         public UserDTO(int id, string username, string passwordHash, string role)
         {
@@ -22,10 +22,10 @@ namespace studentDataAccessLayer
         }
     }
 
-    // 2. كلاس التعامل المباشر مع قاعدة البيانات
+
     public class UserData
     {
-        // دالة للبحث عن مستخدم عن طريق اسم المستخدم (Username) - ضرورية جداً للـ Login
+
         public static UserDTO GetUserByUsername(string username)
         {
             using (SqlConnection connection = new SqlConnection(DatabaseSettings.ConnectionString))
@@ -34,7 +34,7 @@ namespace studentDataAccessLayer
 
                 using (SqlCommand comm = new SqlCommand(query, connection))
                 {
-                    // استخدام SqlDbType بدل AddWithValue
+
                     comm.Parameters.Add("@Username", SqlDbType.NVarChar, 50).Value = username;
 
                     connection.Open();
@@ -55,7 +55,7 @@ namespace studentDataAccessLayer
             }
         }
 
-        // دالة للبحث عن مستخدم باستخدام الـ Id الأساسي
+
         public static UserDTO GetUserById(int id)
         {
             using (SqlConnection connection = new SqlConnection(DatabaseSettings.ConnectionString))
@@ -84,13 +84,12 @@ namespace studentDataAccessLayer
             }
         }
 
-        // دالة لإضافة مستخدم جديد - مهمة جداً لعملية التسجيل (Register)
+
         public static int AddUser(UserDTO userDTO)
         {
             using (SqlConnection connection = new SqlConnection(DatabaseSettings.ConnectionString))
             {
-                // بنستخدم SCOPE_IDENTITY عشان نرجع الـ ID اللي اتعمله Generate لليوزر الجديد
-                // وده هنحتاجه عشان نربط الطالب (Student) باليوزر ده
+
                 string query = @"INSERT INTO Users (Username, PasswordHash, Role) 
                                  VALUES (@Username, @PasswordHash, @Role);
                                  SELECT SCOPE_IDENTITY();";
@@ -109,7 +108,7 @@ namespace studentDataAccessLayer
             }
         }
 
-        // دالة لتحديث بيانات الدخول (مثلاً تغيير الباسورد)
+
         public static bool UpdateUser(UserDTO userDTO)
         {
             using (SqlConnection connection = new SqlConnection(DatabaseSettings.ConnectionString))
@@ -134,7 +133,7 @@ namespace studentDataAccessLayer
             }
         }
 
-        // دالة لحذف المستخدم (لو مسحناه، جدول الطلاب هيمسح بيانات الطالب المرتبطة بيه بسبب ON DELETE CASCADE)
+
         public static bool DeleteUser(int id)
         {
             using (SqlConnection connection = new SqlConnection(DatabaseSettings.ConnectionString))

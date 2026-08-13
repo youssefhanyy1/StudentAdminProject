@@ -8,7 +8,7 @@ namespace DataAccessLayer
 {
     public static class DatabaseSettings
     {
-        // هنخزن هنا الـ Connection String عشان نقرأه من أي مكان في الـ DAL
+
         public static string ConnectionString { get; set; }
     }
 }

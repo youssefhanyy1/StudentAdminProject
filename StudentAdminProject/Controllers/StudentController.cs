@@ -1,5 +1,7 @@
 ﻿using BusinessLogicLayer;
 using Microsoft.AspNetCore.Mvc;
+using StudentAdminProject.DTOs.Requests;
+using StudentAdminProject.Requests;
 
 namespace StudentAdminProject.Controllers
 {
@@ -7,35 +9,34 @@ namespace StudentAdminProject.Controllers
     [ApiController]
     public class StudentController : ControllerBase
     {
-        // 1. عرض بيانات الطالب (بناءً على الـ userId اللي مبعوت في الـ Route)
+
         [HttpGet("{userId}/profile")]
         public IActionResult GetProfile(int userId)
         {
-            // استخدام دالة FindByUserId للبحث
+
             Student student = Student.FindByUserId(userId);
 
             if (student == null)
                 return NotFound("لم يتم العثور على بيانات الطالب.");
 
-            return Ok(student.SDTO); // نرجع البيانات في شكل JSON
+            return Ok(student.SDTO);
         }
 
-        // 2. تحديث بيانات الطالب
         [HttpPut("{userId}/profile")]
         public IActionResult UpdateProfile(int userId, [FromBody] UpdateProfileRequest request)
         {
-            // نجيب بيانات الطالب الحالية من الداتابيز
+
             Student student = Student.FindByUserId(userId);
 
             if (student == null)
                 return NotFound("الطالب غير موجود.");
 
-            // نحدث الخصائص بالبيانات الجديدة المبعوتة
+
             student.FullName = request.FullName;
             student.Email = request.Email;
             student.Department = request.Department;
 
-            // استخدام دالة Save اللي بتعمل Update
+
             if (student.Save())
             {
                 return Ok(new { message = "تم تحديث البيانات بنجاح", data = student.SDTO });
@@ -44,7 +45,6 @@ namespace StudentAdminProject.Controllers
             return StatusCode(500, "حدث خطأ أثناء حفظ البيانات.");
         }
 
-        // 3. عرض كل الطلاب 
         [HttpGet("all")]
         public IActionResult GetAllStudents()
         {
@@ -52,7 +52,7 @@ namespace StudentAdminProject.Controllers
             return Ok(students);
         }
 
-    
+
         [HttpGet("{id}")]
         public IActionResult GetStudentById(int id)
         {
@@ -68,7 +68,7 @@ namespace StudentAdminProject.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteStudent(int id)
         {
-        
+
             Student student = Student.Find(id);
 
             if (student == null)
@@ -81,12 +81,52 @@ namespace StudentAdminProject.Controllers
 
             return StatusCode(500, "حدث خطأ أثناء الحذف.");
         }
-    }
 
-    public class UpdateProfileRequest
-    {
-        public string FullName { get; set; }
-        public string Email { get; set; }
-        public string Department { get; set; }
-    }
+
+        [HttpPost]
+        public IActionResult CreateStudent([FromBody] CreateStudentRequest request)
+        {
+            if (request == null)
+                return BadRequest("بيانات الطلب فارغة.");
+
+
+            BusinessLogicLayer.User user = BusinessLogicLayer.User.Find(request.UserId);
+
+            if (user == null)
+            {
+                return BadRequest($"لا يوجد مستخدم في النظام بهذا الـ UserId ({request.UserId}).");
+            }
+
+   
+            if (!string.Equals(user.Role, "Student", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest($"المستخدم رقم ({request.UserId}) ليس من نوع طالب (Role = {user.Role}). لا يمكن إضافة بيانات طالب له.");
+            }
+
+
+            Student existingStudent = Student.FindByUserId(request.UserId);
+            if (existingStudent != null)
+            {
+                return BadRequest("هذا المستخدم مسجل له بيانات طالب بالفعل.");
+            }
+
+
+            Student newStudent = new Student
+            {
+                UserId = request.UserId,
+                FullName = request.FullName,
+                Email = request.Email,
+                Department = request.Department,
+                GPA = request.GPA
+            };
+
+            if (newStudent.Save())
+            {
+                return CreatedAtAction(nameof(GetStudentById), new { id = newStudent.Id }, newStudent.SDTO);
+            }
+
+            return StatusCode(500, "حدث خطأ أثناء حفظ بيانات الطالب.");
+        }
+     
+    } 
 }

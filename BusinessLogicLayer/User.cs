@@ -1,5 +1,5 @@
 ﻿using studentDataAccessLayer;
-using BusinessLogicLayer.Helpers; // تأكد من استدعاء كلاس الـ PasswordHasher
+using BusinessLogicLayer.Helpers; 
 
 namespace BusinessLogicLayer
 {
@@ -32,23 +32,23 @@ namespace BusinessLogicLayer
             this.Mode = mode;
         }
 
-        // --- دالة لتعيين أو تغيير كلمة المرور وتشفيرها تلقائياً ---
+
         public void SetPassword(string plainPassword)
         {
             if (!string.IsNullOrWhiteSpace(plainPassword))
             {
-                // بنستعمل PasswordHasher اللي أنت عملته عشان نشفر الباسورد ونخزنه في الـ Hash
+
                 this.PasswordHash = PasswordHasher.HashPassword(plainPassword);
             }
         }
 
-        // --- دالة للتحقق من صحة كلمة المرور للمستخدم الحالي ---
+
         public bool VerifyPassword(string plainPassword)
         {
             if (string.IsNullOrEmpty(this.PasswordHash))
                 return false;
 
-            // التحقق باستخدام الـ PasswordHasher
+
             return PasswordHasher.VerifyPassword(plainPassword, this.PasswordHash);
         }
 

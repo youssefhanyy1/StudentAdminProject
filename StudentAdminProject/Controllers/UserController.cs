@@ -1,6 +1,6 @@
 ﻿using BusinessLogicLayer;
 using Microsoft.AspNetCore.Mvc;
-using StudentAdminProject.DTOs;
+using StudentAdminProject.DTOs.Requests;
 
 namespace StudentAdminProject.Controllers
 {
@@ -8,11 +8,11 @@ namespace StudentAdminProject.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        // 1. جلب بيانات مستخدم باستخدام الـ Id
+
         [HttpGet("{id}")]
         public IActionResult GetUserById(int id)
         {
-            // استخدام BusinessLogicLayer.User لتجنب التداخل مع الكلاس المدمج في ControllerBase
+
             BusinessLogicLayer.User user = BusinessLogicLayer.User.Find(id);
             if (user == null)
                 return NotFound("المستخدم غير موجود.");
@@ -25,7 +25,7 @@ namespace StudentAdminProject.Controllers
             });
         }
 
-        // 2. تحديث كلمة المرور للمستخدم (مع التشفير التلقائي بـ BCrypt)
+
         [HttpPut("{id}/password")]
         public IActionResult UpdatePassword(int id, [FromBody] UpdatePasswordRequest request)
         {
@@ -38,7 +38,6 @@ namespace StudentAdminProject.Controllers
             if (user == null)
                 return NotFound("المستخدم غير موجود.");
 
-            // استخدام دالة SetPassword لتشفير وحفظ الباسورد الجديد
             user.SetPassword(request.NewPassword);
 
             if (user.Save())
@@ -48,7 +47,7 @@ namespace StudentAdminProject.Controllers
 
             return StatusCode(500, "حدث خطأ أثناء تحديث كلمة المرور.");
         }
-        // 4. إضافة مستخدم جديد (POST)
+   
         [HttpPost]
         public IActionResult CreateUser([FromBody] CreateUserRequest request)
         {
@@ -57,7 +56,7 @@ namespace StudentAdminProject.Controllers
                 return BadRequest("اسم المستخدم وكلمة المرور مطلوبان.");
             }
 
-            // التأكد أن اسم المستخدم مش موجود قبل كده
+   
             if (BusinessLogicLayer.User.FindByUsername(request.Username) != null)
             {
                 return BadRequest("اسم المستخدم موجود بالفعل.");
@@ -65,9 +64,8 @@ namespace StudentAdminProject.Controllers
 
             BusinessLogicLayer.User newUser = new BusinessLogicLayer.User();
             newUser.Username = request.Username;
-            newUser.Role = request.Role ?? "Student"; // لو محددش الصلاحية، تخليها طالب افتراضياً
+            newUser.Role = request.Role ?? "Student"; 
 
-            // استخدام دالة تشفير الباسورد اللي ربناها في الكلاس
             newUser.SetPassword(request.Password);
 
             if (newUser.Save())
@@ -82,7 +80,7 @@ namespace StudentAdminProject.Controllers
             return StatusCode(500, "حدث خطأ أثناء حفظ المستخدم.");
         }
 
-        // 3. حذف مستخدم
+
         [HttpDelete("{id}")]
         public IActionResult DeleteUser(int id)
         {

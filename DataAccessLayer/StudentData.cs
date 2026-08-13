@@ -5,11 +5,11 @@ namespace studentDataAccessLayer
     public class StudentDTO
     {
         public int Id { get; set; }
-        public int UserId { get; set; } // حسب التصميم، كل طالب لازم يكون مربوط بـ User
+        public int UserId { get; set; } 
         public string FullName { get; set; }
         public string Email { get; set; }
         public string Department { get; set; }
-        public decimal? GPA { get; set; } // Nullable عشان ممكن ميكونش ليه معدل لسه
+        public decimal? GPA { get; set; } 
 
         public StudentDTO(int id, int userId, string fullName, string email, string department, decimal? gpa)
         {
@@ -24,7 +24,7 @@ namespace studentDataAccessLayer
 
     public class StudentData
     {
-        // 1. جلب بيانات طالب بناءً على الـ UserId (مفيدة بعد الـ Login)
+
         public static StudentDTO GetStudentByUserId(int userId)
         {
             using (SqlConnection connection = new SqlConnection(DatabaseSettings.ConnectionString))
@@ -40,7 +40,7 @@ namespace studentDataAccessLayer
                     {
                         if (reader.Read())
                         {
-                            // معالجة القيم اللي ممكن تكون Null في الداتابيز
+
                             string department = reader.IsDBNull(reader.GetOrdinal("Department")) ? null : reader.GetString(reader.GetOrdinal("Department"));
                             decimal? gpa = reader.IsDBNull(reader.GetOrdinal("GPA")) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal("GPA"));
 
@@ -58,7 +58,7 @@ namespace studentDataAccessLayer
                 }
             }
         }
-        // دالة البحث عن طالب باستخدام الـ Id الأساسي (Primary Key)
+
         public static StudentDTO GetStudentById(int id)
         {
             using (SqlConnection connection = new SqlConnection(DatabaseSettings.ConnectionString))
@@ -67,7 +67,7 @@ namespace studentDataAccessLayer
 
                 using (SqlCommand comm = new SqlCommand(query, connection))
                 {
-                    // استخدام SqlDbType بدل AddWithValue زي ما اتفقنا
+
                     comm.Parameters.Add("@Id", System.Data.SqlDbType.Int).Value = id;
                     connection.Open();
 
@@ -75,7 +75,7 @@ namespace studentDataAccessLayer
                     {
                         if (reader.Read())
                         {
-                            // معالجة القيم اللي ممكن تكون Null في الداتابيز
+
                             string department = reader.IsDBNull(reader.GetOrdinal("Department")) ? null : reader.GetString(reader.GetOrdinal("Department"));
                             decimal? gpa = reader.IsDBNull(reader.GetOrdinal("GPA")) ? (decimal?)null : reader.GetDecimal(reader.GetOrdinal("GPA"));
 

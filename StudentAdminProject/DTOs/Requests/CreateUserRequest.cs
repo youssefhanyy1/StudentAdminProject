@@ -1,4 +1,4 @@
-﻿namespace StudentAdminProject.DTOs
+﻿namespace StudentAdminProject.DTOs.Requests
 {
     public class CreateUserRequest
     {
