@@ -1,7 +1,9 @@
 using DataAccessLayer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StudentAdminProject.Authorization;
 using StudentAdminProject.Helpers;
 using studentDataAccessLayer;
 using System.Text;
@@ -10,7 +12,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 DatabaseSettings.ConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
+builder.Services.AddScoped<IAuthorizationHandler, SameUserOrAdminHandler>();
+builder.Services.AddAuthorization(options =>
+{
+// سياسة ملكية البيانات أو صلاحية الأدمن
+options.AddPolicy("CanAccessProfile", policy =>
+    policy.Requirements.Add(new SameUserOrAdminRequirement()));
+});
 
 builder.Services.AddControllers();
 

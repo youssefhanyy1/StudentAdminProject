@@ -6,19 +6,19 @@ using StudentAdminProject.Requests;
 
 namespace StudentAdminProject.Controllers
 {
-    [Authorize]
+    [Authorize] // يتطلب تسجيل دخول لجميع الدوال كحد أدنى
     [Route("api/[controller]")]
     [ApiController]
     public class StudentController : ControllerBase
     {
-
+        // 1. عرض بروفايل طالب (مسموح لصاحب الحساب فقط أو الأدمن عبر الـ Policy)
+        [Authorize(Policy = "CanAccessProfile")]
         [HttpGet("{userId}/profile")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public IActionResult GetProfile(int userId)
         {
-
             Student student = Student.FindByUserId(userId);
 
             if (student == null)
@@ -27,23 +27,22 @@ namespace StudentAdminProject.Controllers
             return Ok(student.SDTO);
         }
 
+        // 2. تحديث بروفايل طالب (مسموح لصاحب الحساب فقط أو الأدمن عبر الـ Policy)
+        [Authorize(Policy = "CanAccessProfile")]
         [HttpPut("{userId}/profile")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public IActionResult UpdateProfile(int userId, [FromBody] UpdateProfileRequest request)
         {
-
             Student student = Student.FindByUserId(userId);
 
             if (student == null)
                 return NotFound("الطالب غير موجود.");
 
-
             student.FullName = request.FullName;
             student.Email = request.Email;
             student.Department = request.Department;
-
 
             if (student.Save())
             {
@@ -52,21 +51,24 @@ namespace StudentAdminProject.Controllers
 
             return StatusCode(500, "حدث خطأ أثناء حفظ البيانات.");
         }
-        [Authorize(Roles ="Admin")]
+
+        // 3. عرض جميع الطلاب (للأدمن فقط)
+        [Authorize(Roles = "Admin")]
         [HttpGet("all")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public IActionResult GetAllStudents()
         {
             var students = Student.GetAllStudents();
             return Ok(students);
         }
 
-
+        // 4. البحث عن طالب بـ ID (للأدمن فقط)
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public IActionResult GetStudentById(int id)
         {
             Student student = Student.Find(id);
@@ -77,14 +79,15 @@ namespace StudentAdminProject.Controllers
             return Ok(student.SDTO);
         }
 
-
+        // 5. حذف طالب (للأدمن فقط)
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult DeleteStudent(int id)
         {
-
             Student student = Student.Find(id);
 
             if (student == null)
@@ -98,16 +101,17 @@ namespace StudentAdminProject.Controllers
             return StatusCode(500, "حدث خطأ أثناء الحذف.");
         }
 
-        [Authorize(Roles ="Admin")]
+        // 6. إضافة طالب جديد (للأدمن فقط)
+        [Authorize(Roles = "Admin")]
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult CreateStudent([FromBody] CreateStudentRequest request)
         {
             if (request == null)
                 return BadRequest("بيانات الطلب فارغة.");
-
 
             BusinessLogicLayer.User user = BusinessLogicLayer.User.Find(request.UserId);
 
@@ -116,19 +120,16 @@ namespace StudentAdminProject.Controllers
                 return BadRequest($"لا يوجد مستخدم في النظام بهذا الـ UserId ({request.UserId}).");
             }
 
-   
             if (!string.Equals(user.Role, "Student", StringComparison.OrdinalIgnoreCase))
             {
                 return BadRequest($"المستخدم رقم ({request.UserId}) ليس من نوع طالب (Role = {user.Role}). لا يمكن إضافة بيانات طالب له.");
             }
-
 
             Student existingStudent = Student.FindByUserId(request.UserId);
             if (existingStudent != null)
             {
                 return BadRequest("هذا المستخدم مسجل له بيانات طالب بالفعل.");
             }
-
 
             Student newStudent = new Student
             {
@@ -146,6 +147,5 @@ namespace StudentAdminProject.Controllers
 
             return StatusCode(500, "حدث خطأ أثناء حفظ بيانات الطالب.");
         }
-     
-    } 
+    }
 }
