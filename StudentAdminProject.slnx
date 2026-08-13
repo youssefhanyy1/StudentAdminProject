@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="BusinessLogicLayer/BusinessLogicLayer.csproj" Id="3bbc2669-dbc0-4412-a03f-8ce50dbec8d5" />
+  <Project Path="DataAccessLayer/DataAccessLayer.csproj" />
+  <Project Path="StudentAdminProject/StudentAdminProject.csproj" />
+</Solution>
