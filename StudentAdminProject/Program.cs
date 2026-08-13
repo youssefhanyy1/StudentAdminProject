@@ -31,9 +31,8 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddScoped<JwtService>();
 
-
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.UTF8.GetBytes(jwtSettings["Key"] ?? "DefaultFallbackSecretKeyMustBeLongEnough123!");
+var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
 
 builder.Services.AddAuthentication(options =>
 {
