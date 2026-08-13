@@ -1,16 +1,21 @@
 ﻿using BusinessLogicLayer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StudentAdminProject.DTOs.Requests;
 using StudentAdminProject.Requests;
 
 namespace StudentAdminProject.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class StudentController : ControllerBase
     {
 
         [HttpGet("{userId}/profile")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+
         public IActionResult GetProfile(int userId)
         {
 
@@ -23,6 +28,9 @@ namespace StudentAdminProject.Controllers
         }
 
         [HttpPut("{userId}/profile")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+
         public IActionResult UpdateProfile(int userId, [FromBody] UpdateProfileRequest request)
         {
 
@@ -44,8 +52,10 @@ namespace StudentAdminProject.Controllers
 
             return StatusCode(500, "حدث خطأ أثناء حفظ البيانات.");
         }
-
+        [Authorize(Roles ="Admin")]
         [HttpGet("all")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+
         public IActionResult GetAllStudents()
         {
             var students = Student.GetAllStudents();
@@ -54,6 +64,9 @@ namespace StudentAdminProject.Controllers
 
 
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+
         public IActionResult GetStudentById(int id)
         {
             Student student = Student.Find(id);
@@ -66,6 +79,9 @@ namespace StudentAdminProject.Controllers
 
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult DeleteStudent(int id)
         {
 
@@ -82,8 +98,11 @@ namespace StudentAdminProject.Controllers
             return StatusCode(500, "حدث خطأ أثناء الحذف.");
         }
 
-
+        [Authorize(Roles ="Admin")]
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult CreateStudent([FromBody] CreateStudentRequest request)
         {
             if (request == null)

@@ -49,6 +49,7 @@ namespace StudentAdminProject.Controllers
         }
    
         [HttpPost]
+
         public IActionResult CreateUser([FromBody] CreateUserRequest request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
