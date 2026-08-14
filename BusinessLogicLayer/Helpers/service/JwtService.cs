@@ -18,7 +18,7 @@ namespace StudentAdminProject.Helpers
             _config = config;
         }
 
-        public string GenerateAccessToken(User user)
+        public string GenerateAccessToken(Users user)
         {
             var claims = new[]
             {

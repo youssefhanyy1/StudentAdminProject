@@ -3,7 +3,7 @@ using BusinessLogicLayer.Helpers;
 
 namespace BusinessLogicLayer
 {
-    public class User
+    public class Users
     {
         public enum enMode { AddNew = 0, Update = 1 };
         public enMode Mode = enMode.AddNew;
@@ -18,12 +18,12 @@ namespace BusinessLogicLayer
             get { return new UserDTO(this.Id, this.Username, this.PasswordHash, this.Role); }
         }
 
-        public User()
+        public Users()
         {
             this.Mode = enMode.AddNew;
         }
 
-        private User(UserDTO dto, enMode mode = enMode.AddNew)
+        private Users(UserDTO dto, enMode mode = enMode.AddNew)
         {
             this.Id = dto.Id;
             this.Username = dto.Username;
@@ -52,17 +52,17 @@ namespace BusinessLogicLayer
             return PasswordHasher.VerifyPassword(plainPassword, this.PasswordHash);
         }
 
-        public static User Find(int id)
+        public static Users Find(int id)
         {
             UserDTO dto = UserData.GetUserById(id);
-            if (dto != null) return new User(dto, enMode.Update);
+            if (dto != null) return new Users(dto, enMode.Update);
             return null;
         }
 
-        public static User FindByUsername(string username)
+        public static Users FindByUsername(string username)
         {
             UserDTO dto = UserData.GetUserByUsername(username);
-            if (dto != null) return new User(dto, enMode.Update);
+            if (dto != null) return new Users(dto, enMode.Update);
             return null;
         }
 

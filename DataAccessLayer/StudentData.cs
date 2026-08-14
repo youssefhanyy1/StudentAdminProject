@@ -182,8 +182,7 @@ namespace studentDataAccessLayer
         {
             using (SqlConnection connection = new SqlConnection(DatabaseSettings.ConnectionString))
             {
-                // الـ ON DELETE CASCADE في السكريبت بتمسح الطالب لو اليوزر اتمسح
-                // بس دي لو حبيت تمسح الطالب نفسه مباشرة
+
                 string query = "DELETE FROM Students WHERE Id = @Id";
 
                 using (SqlCommand command = new SqlCommand(query, connection))

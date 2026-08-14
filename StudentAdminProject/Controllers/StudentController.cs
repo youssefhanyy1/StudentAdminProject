@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StudentAdminProject.DTOs.Requests;
 using StudentAdminProject.Requests;
+using System.Security.Claims;
 
 namespace StudentAdminProject.Controllers
 {
@@ -11,7 +12,14 @@ namespace StudentAdminProject.Controllers
     [ApiController]
     public class StudentController : ControllerBase
     {
-  
+        private readonly ILogger<StudentController> _logger;
+
+
+        public StudentController(ILogger<StudentController> logger)
+        {
+            _logger = logger;
+        }
+
         [Authorize(Policy = "CanAccessProfile")]
         [HttpGet("{userId}/profile")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -88,8 +96,17 @@ namespace StudentAdminProject.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult DeleteStudent(int id)
         {
-            Student student = Student.Find(id);
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
+            var adminId = Users.Find(id);
+            Student student = Student.Find(id);
+            _logger.LogInformation(
+                  "Admin action started. AdminId={AdminId}, Action=DeleteStudent, TargetId={TargetId}, TargetEmail={TargetEmail}, IP={IP}",
+                  adminId,
+                  student.Id,
+                  student.Email,
+                  ip
+            );
             if (student == null)
                 return NotFound("الطالب غير موجود.");
 
@@ -113,7 +130,7 @@ namespace StudentAdminProject.Controllers
             if (request == null)
                 return BadRequest("بيانات الطلب فارغة.");
 
-            BusinessLogicLayer.User user = BusinessLogicLayer.User.Find(request.UserId);
+            BusinessLogicLayer.Users user = BusinessLogicLayer.Users.Find(request.UserId);
 
             if (user == null)
             {

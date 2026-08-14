@@ -62,7 +62,7 @@ namespace BusinessLogicLayer
                 case enMode.AddNew:
 
 
-                    User user = User.Find(this.UserId);
+                    Users user = Users.Find(this.UserId);
                     if (user == null)
                     {
                         return false;

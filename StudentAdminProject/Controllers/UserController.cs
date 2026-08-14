@@ -13,7 +13,7 @@ namespace StudentAdminProject.Controllers
         public IActionResult GetUserById(int id)
         {
 
-            BusinessLogicLayer.User user = BusinessLogicLayer.User.Find(id);
+            BusinessLogicLayer.Users user = BusinessLogicLayer.Users.Find(id);
             if (user == null)
                 return NotFound("المستخدم غير موجود.");
 
@@ -34,7 +34,7 @@ namespace StudentAdminProject.Controllers
                 return BadRequest("كلمة المرور الجديدة مطلوبة.");
             }
 
-            BusinessLogicLayer.User user = BusinessLogicLayer.User.Find(id);
+            BusinessLogicLayer.Users user = BusinessLogicLayer.Users.Find(id);
             if (user == null)
                 return NotFound("المستخدم غير موجود.");
 
@@ -58,12 +58,12 @@ namespace StudentAdminProject.Controllers
             }
 
    
-            if (BusinessLogicLayer.User.FindByUsername(request.Username) != null)
+            if (BusinessLogicLayer.Users.FindByUsername(request.Username) != null)
             {
                 return BadRequest("اسم المستخدم موجود بالفعل.");
             }
 
-            BusinessLogicLayer.User newUser = new BusinessLogicLayer.User();
+            BusinessLogicLayer.Users newUser = new BusinessLogicLayer.Users();
             newUser.Username = request.Username;
             newUser.Role = request.Role ?? "Student"; 
 
@@ -85,11 +85,11 @@ namespace StudentAdminProject.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteUser(int id)
         {
-            BusinessLogicLayer.User user = BusinessLogicLayer.User.Find(id);
+            BusinessLogicLayer.Users user = BusinessLogicLayer.Users.Find(id);
             if (user == null)
                 return NotFound("المستخدم غير موجود.");
 
-            if (BusinessLogicLayer.User.DeleteUser(id))
+            if (BusinessLogicLayer.Users.DeleteUser(id))
             {
                 return Ok(new { message = "تم حذف المستخدم بنجاح." });
             }
