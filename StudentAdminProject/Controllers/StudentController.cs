@@ -7,13 +7,12 @@ using System.Security.Claims;
 
 namespace StudentAdminProject.Controllers
 {
-    [Authorize] 
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class StudentController : ControllerBase
     {
         private readonly ILogger<StudentController> _logger;
-
 
         public StudentController(ILogger<StudentController> logger)
         {
@@ -30,23 +29,23 @@ namespace StudentAdminProject.Controllers
             Student student = Student.FindByUserId(userId);
 
             if (student == null)
-                return NotFound("لم يتم العثور على بيانات الطالب.");
+                return NotFound("Student profile not found.");
 
             return Ok(student.SDTO);
         }
-
 
         [Authorize(Policy = "CanAccessProfile")]
         [HttpPut("{userId}/profile")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult UpdateProfile(int userId, [FromBody] UpdateProfileRequest request)
         {
             Student student = Student.FindByUserId(userId);
 
             if (student == null)
-                return NotFound("الطالب غير موجود.");
+                return NotFound("Student not found.");
 
             student.FullName = request.FullName;
             student.Email = request.Email;
@@ -54,12 +53,11 @@ namespace StudentAdminProject.Controllers
 
             if (student.Save())
             {
-                return Ok(new { message = "تم تحديث البيانات بنجاح", data = student.SDTO });
+                return Ok(new { message = "Data updated successfully.", data = student.SDTO });
             }
 
-            return StatusCode(500, "حدث خطأ أثناء حفظ البيانات.");
+            return StatusCode(500, "An error occurred while saving data.");
         }
-
 
         [Authorize(Roles = "Admin")]
         [HttpGet("all")]
@@ -71,7 +69,6 @@ namespace StudentAdminProject.Controllers
             return Ok(students);
         }
 
-
         [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -82,11 +79,10 @@ namespace StudentAdminProject.Controllers
             Student student = Student.Find(id);
 
             if (student == null)
-                return NotFound($"الطالب رقم {id} غير موجود.");
+                return NotFound($"Student with ID {id} not found.");
 
             return Ok(student.SDTO);
         }
-
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
@@ -96,29 +92,32 @@ namespace StudentAdminProject.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult DeleteStudent(int id)
         {
+  
+            var currentAdminId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "Unknown";
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
-            var adminId = Users.Find(id);
+
             Student student = Student.Find(id);
-            _logger.LogInformation(
-                  "Admin action started. AdminId={AdminId}, Action=DeleteStudent, TargetId={TargetId}, TargetEmail={TargetEmail}, IP={IP}",
-                  adminId,
-                  student.Id,
-                  student.Email,
-                  ip
-            );
             if (student == null)
-                return NotFound("الطالب غير موجود.");
+                return NotFound("Student not found.");
+
 
             if (Student.DeleteStudent(id))
             {
-                return Ok(new { message = "تم حذف الطالب بنجاح." });
+                _logger.LogInformation(
+                    "Admin action completed. AdminId={AdminId}, Action=DeleteStudent, TargetStudentId={TargetId}, TargetEmail={TargetEmail}, IP={IP}",
+                    currentAdminId,
+                    student.Id,
+                    student.Email,
+                    ip
+                );
+
+                return Ok(new { message = "Student deleted successfully." });
             }
 
-            return StatusCode(500, "حدث خطأ أثناء الحذف.");
+            return StatusCode(500, "An error occurred while deleting the student.");
         }
 
- 
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -128,24 +127,24 @@ namespace StudentAdminProject.Controllers
         public IActionResult CreateStudent([FromBody] CreateStudentRequest request)
         {
             if (request == null)
-                return BadRequest("بيانات الطلب فارغة.");
+                return BadRequest("Request body is empty.");
 
             BusinessLogicLayer.Users user = BusinessLogicLayer.Users.Find(request.UserId);
 
             if (user == null)
             {
-                return BadRequest($"لا يوجد مستخدم في النظام بهذا الـ UserId ({request.UserId}).");
+                return BadRequest($"No user found in the system with UserId ({request.UserId}).");
             }
 
             if (!string.Equals(user.Role, "Student", StringComparison.OrdinalIgnoreCase))
             {
-                return BadRequest($"المستخدم رقم ({request.UserId}) ليس من نوع طالب (Role = {user.Role}). لا يمكن إضافة بيانات طالب له.");
+                return BadRequest($"User ({request.UserId}) is not a student (Role = {user.Role}). Cannot add student data for this user.");
             }
 
             Student existingStudent = Student.FindByUserId(request.UserId);
             if (existingStudent != null)
             {
-                return BadRequest("هذا المستخدم مسجل له بيانات طالب بالفعل.");
+                return BadRequest("This user already has student data registered.");
             }
 
             Student newStudent = new Student
@@ -162,7 +161,7 @@ namespace StudentAdminProject.Controllers
                 return CreatedAtAction(nameof(GetStudentById), new { id = newStudent.Id }, newStudent.SDTO);
             }
 
-            return StatusCode(500, "حدث خطأ أثناء حفظ بيانات الطالب.");
+            return StatusCode(500, "An error occurred while saving student data.");
         }
     }
 }

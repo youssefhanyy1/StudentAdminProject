@@ -6,7 +6,6 @@ using StudentAdminProject.DTOs.Auth;
 using StudentAdminProject.Helpers;
 using StudentAdminProject.Requests;
 using System;
-
 using LoginRequest = StudentAdminProject.DTOs.Auth.LoginRequest;
 
 namespace StudentAdminProject.Controllers
@@ -18,6 +17,7 @@ namespace StudentAdminProject.Controllers
     {
         private readonly JwtService _jwtService;
         private readonly ILogger<AuthController> _logger;
+
         public AuthController(IConfiguration config, ILogger<AuthController> logger)
         {
             _jwtService = new JwtService(config);
@@ -28,32 +28,32 @@ namespace StudentAdminProject.Controllers
         public IActionResult Login([FromBody] LoginRequest request)
         {
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
             if (request == null || string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
             {
                 _logger.LogWarning(
-                    "Failed login attempt (email not found). User name={Username}, IP={IP}",
-                    request.Username,
+                    "Failed login attempt (missing credentials). User name={Username}, IP={IP}",
+                    request?.Username,
                     ip
                 );
-                return BadRequest("اسم المستخدم وكلمة المرور مطلوبان.");
+                return BadRequest("Username and password are required.");
             }
+
             BusinessLogicLayer.Users user = BusinessLogicLayer.Users.FindByUsername(request.Username);
 
             if (user == null || !user.VerifyPassword(request.Password))
             {
                 _logger.LogWarning(
-                    "Failed login attempt (email not found). User name={Username}, IP={IP}",
+                    "Failed login attempt (invalid credentials). User name={Username}, IP={IP}",
                     request.Username,
                     ip
                 );
-                return Unauthorized("اسم المستخدم أو كلمة المرور غير صحيحة.");
+                return Unauthorized("Invalid username or password.");
             }
-
 
             string accessToken = _jwtService.GenerateAccessToken(user);
             string refreshToken = _jwtService.GenerateRefreshToken();
             DateTime expiresAt = DateTime.UtcNow.AddMinutes(60);
-
 
             var tokenResponse = new TokenResponse
             {
@@ -61,16 +61,17 @@ namespace StudentAdminProject.Controllers
                 RefreshToken = refreshToken,
                 ExpiresAt = expiresAt
             };
-                 _logger.LogInformation(
-                  "Successful login. UserId={Id}, Email={Username}, IP={IP}",
-                  user.Id,
-                  user.Username,
-                  ip
-                 );
+
+            _logger.LogInformation(
+                "Successful login. UserId={Id}, Username={Username}, IP={IP}",
+                user.Id,
+                user.Username,
+                ip
+            );
 
             return Ok(new
             {
-                message = "تم تسجيل الدخول بنجاح",
+                message = "Logged in successfully.",
                 tokens = tokenResponse,
                 user = new
                 {
@@ -84,36 +85,30 @@ namespace StudentAdminProject.Controllers
         [HttpPost("refresh")]
         public IActionResult RefreshToken([FromBody] RefreshRequest request)
         {
-
             if (request == null || string.IsNullOrWhiteSpace(request.AccessToken) || string.IsNullOrWhiteSpace(request.RefreshToken))
             {
-
-                return BadRequest("الـ AccessToken والـ RefreshToken مطلوبان.");
+                return BadRequest("Both AccessToken and RefreshToken are required.");
             }
 
             try
             {
-
                 var principal = _jwtService.GetPrincipalFromExpiredToken(request.AccessToken);
                 if (principal == null)
                 {
-                    return BadRequest("التوكن غير صالح.");
+                    return BadRequest("Invalid token.");
                 }
 
                 var userIdClaim = principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
                 {
-
-                    return BadRequest("بيانات التوكن غير صحيحة.");
+                    return BadRequest("Invalid token claims.");
                 }
-
 
                 BusinessLogicLayer.Users user = BusinessLogicLayer.Users.Find(userId);
                 if (user == null)
                 {
-                    return Unauthorized("المستخدم غير موجود بالسيستم.");
+                    return Unauthorized("User not found.");
                 }
-
 
                 string newAccessToken = _jwtService.GenerateAccessToken(user);
                 string newRefreshToken = _jwtService.GenerateRefreshToken();
@@ -128,27 +123,27 @@ namespace StudentAdminProject.Controllers
 
                 return Ok(new
                 {
-                    message = "تم تجديد التوكن بنجاح",
+                    message = "Token refreshed successfully.",
                     tokens = tokenResponse
                 });
             }
             catch (Exception)
             {
-                return BadRequest("حدث خطأ أثناء تجديد التوكن، يرجى إعادة تسجيل الدخول.");
+                return BadRequest("An error occurred while refreshing token. Please log in again.");
             }
         }
+
         [HttpPost("Logout")]
         public IActionResult Logout([FromBody] LogoutRequest request)
         {
-
             if (request == null || string.IsNullOrWhiteSpace(request.RefreshToken))
             {
-                return BadRequest("الـ RefreshToken مطلوب لإتمام عملية تسجيل الخروج.");
+                return BadRequest("RefreshToken is required to complete logout.");
             }
 
             return Ok(new
             {
-                message = "تم تسجيل الخروج بنجاح."
+                message = "Logged out successfully."
             });
         }
     }
