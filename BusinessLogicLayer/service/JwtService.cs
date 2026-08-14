@@ -7,7 +7,7 @@ using BusinessLogicLayer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
-namespace StudentAdminProject.Helpers
+namespace BusinessLogicLayer.service
 {
     public class JwtService
     {
