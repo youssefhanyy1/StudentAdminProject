@@ -6,12 +6,12 @@ using StudentAdminProject.Requests;
 
 namespace StudentAdminProject.Controllers
 {
-    [Authorize] // يتطلب تسجيل دخول لجميع الدوال كحد أدنى
+    [Authorize] 
     [Route("api/[controller]")]
     [ApiController]
     public class StudentController : ControllerBase
     {
-        // 1. عرض بروفايل طالب (مسموح لصاحب الحساب فقط أو الأدمن عبر الـ Policy)
+  
         [Authorize(Policy = "CanAccessProfile")]
         [HttpGet("{userId}/profile")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -27,7 +27,7 @@ namespace StudentAdminProject.Controllers
             return Ok(student.SDTO);
         }
 
-        // 2. تحديث بروفايل طالب (مسموح لصاحب الحساب فقط أو الأدمن عبر الـ Policy)
+
         [Authorize(Policy = "CanAccessProfile")]
         [HttpPut("{userId}/profile")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -52,7 +52,7 @@ namespace StudentAdminProject.Controllers
             return StatusCode(500, "حدث خطأ أثناء حفظ البيانات.");
         }
 
-        // 3. عرض جميع الطلاب (للأدمن فقط)
+
         [Authorize(Roles = "Admin")]
         [HttpGet("all")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -63,7 +63,7 @@ namespace StudentAdminProject.Controllers
             return Ok(students);
         }
 
-        // 4. البحث عن طالب بـ ID (للأدمن فقط)
+
         [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -79,7 +79,7 @@ namespace StudentAdminProject.Controllers
             return Ok(student.SDTO);
         }
 
-        // 5. حذف طالب (للأدمن فقط)
+
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -101,7 +101,7 @@ namespace StudentAdminProject.Controllers
             return StatusCode(500, "حدث خطأ أثناء الحذف.");
         }
 
-        // 6. إضافة طالب جديد (للأدمن فقط)
+ 
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]

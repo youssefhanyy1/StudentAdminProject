@@ -7,15 +7,17 @@ using StudentAdminProject.Authorization;
 using StudentAdminProject.Helpers;
 using studentDataAccessLayer;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 DatabaseSettings.ConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthorizationHandler, SameUserOrAdminHandler>();
 builder.Services.AddAuthorization(options =>
 {
-// سياسة ملكية البيانات أو صلاحية الأدمن
+
 options.AddPolicy("CanAccessProfile", policy =>
     policy.Requirements.Add(new SameUserOrAdminRequirement()));
 });
@@ -92,7 +94,26 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
-var app = builder.Build();
+builder.Services.AddRateLimiter(options=>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("AuthLimiter", HttpContent =>
+    {
+        var ip = HttpContent.Connection.RemoteIpAddress?.ToString() ?? "unKnown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+               partitionKey: ip,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            });
+            
+    });
+});
+
+ var app = builder.Build();
 
 
 if (app.Environment.IsDevelopment())
@@ -102,6 +123,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRateLimiter();
 app.UseCors("StudentApiCorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();

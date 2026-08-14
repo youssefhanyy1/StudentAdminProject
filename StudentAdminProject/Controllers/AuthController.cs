@@ -1,5 +1,6 @@
 ﻿using BusinessLogicLayer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using StudentAdminProject.DTOs.Auth;
 using StudentAdminProject.Helpers;
@@ -12,6 +13,7 @@ namespace StudentAdminProject.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [EnableRateLimiting("AuthLimiter")]
     public class AuthController : ControllerBase
     {
         private readonly JwtService _jwtService;
